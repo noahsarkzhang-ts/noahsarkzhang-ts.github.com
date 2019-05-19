@@ -108,23 +108,25 @@
 
 
 
-  <meta name="description" content="不畏将来，不念过往">
-<meta property="og:type" content="website">
-<meta property="og:title" content="船长的博客">
-<meta property="og:url" content="http://yoursite.com/index.html">
+  <meta name="description" content="环境说明：JDK：1.8.0_111Tomcat：8.5.40Cas-Server：5.3.9Template：thymeleaf 搭建一个基本的CAS服务器过程如下：  下载CAS Overlay template，以5.3.9版本为例：地址为：https://github.com/apereo/cas-overlay-template/tree/5.3 配置SSL环境； 自定义登录页面； 自定">
+<meta name="keywords" content="CAS,SSO,自定义登陆页面,验证码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="搭建CAS服务器">
+<meta property="og:url" content="http://yoursite.com/2019/05/19/build-cas-server/index.html">
 <meta property="og:site_name" content="船长的博客">
-<meta property="og:description" content="不畏将来，不念过往">
+<meta property="og:description" content="环境说明：JDK：1.8.0_111Tomcat：8.5.40Cas-Server：5.3.9Template：thymeleaf 搭建一个基本的CAS服务器过程如下：  下载CAS Overlay template，以5.3.9版本为例：地址为：https://github.com/apereo/cas-overlay-template/tree/5.3 配置SSL环境； 自定义登录页面； 自定">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-05-19T14:02:42.872Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="船长的博客">
-<meta name="twitter:description" content="不畏将来，不念过往">
+<meta name="twitter:title" content="搭建CAS服务器">
+<meta name="twitter:description" content="环境说明：JDK：1.8.0_111Tomcat：8.5.40Cas-Server：5.3.9Template：thymeleaf 搭建一个基本的CAS服务器过程如下：  下载CAS Overlay template，以5.3.9版本为例：地址为：https://github.com/apereo/cas-overlay-template/tree/5.3 配置SSL环境； 自定义登录页面； 自定">
 
 
 
 
 
 
-  <link rel="canonical" href="http://yoursite.com/">
+  <link rel="canonical" href="http://yoursite.com/2019/05/19/build-cas-server/">
 
 
 
@@ -134,7 +136,7 @@
   };
 </script>
 
-  <title>船长的博客</title>
+  <title>搭建CAS服务器 | 船长的博客</title>
   
 
 
@@ -183,8 +185,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
@@ -221,7 +222,7 @@
         
         
           
-          <li class="menu-item menu-item-home menu-item-active">
+          <li class="menu-item menu-item-home">
 
     
     
@@ -351,9 +352,9 @@
           
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -385,10 +386,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2019/05/19/build-cas-server/" class="post-title-link" itemprop="http://yoursite.com/index.html">搭建CAS服务器</a>
+          <h1 class="post-title" itemprop="name headline">搭建CAS服务器
               
             
           </h1>
@@ -469,9 +467,7 @@
       
 
       
-        
-          
-            <p><strong>环境说明：</strong><br>JDK：1.8.0_111<br>Tomcat：8.5.40<br>Cas-Server：5.3.9<br>Template：thymeleaf</p>
+        <p><strong>环境说明：</strong><br>JDK：1.8.0_111<br>Tomcat：8.5.40<br>Cas-Server：5.3.9<br>Template：thymeleaf</p>
 <p>搭建一个基本的CAS服务器过程如下：</p>
 <ul>
 <li>下载CAS Overlay template，以5.3.9版本为例：<br>地址为：<a href="https://github.com/apereo/cas-overlay-template/tree/5.3" target="_blank" rel="noopener">https://github.com/apereo/cas-overlay-template/tree/5.3</a></li>
@@ -553,8 +549,6 @@
 <h3 id="7-2-配置Spring容器的扫描目录，加载Service及Dao对象"><a href="#7-2-配置Spring容器的扫描目录，加载Service及Dao对象" class="headerlink" title="7.2 配置Spring容器的扫描目录，加载Service及Dao对象"></a>7.2 配置Spring容器的扫描目录，加载Service及Dao对象</h3><p>可以定义一个Configuration对象，如SpringConfig，指定扫描的目录，自动加载业务对象。</p>
 <h3 id="7-3-加载DataSourceConfig及SpringConfig对象"><a href="#7-3-加载DataSourceConfig及SpringConfig对象" class="headerlink" title="7.3 加载DataSourceConfig及SpringConfig对象"></a>7.3 加载DataSourceConfig及SpringConfig对象</h3><p>在META-INF/spring.factories文件中加入相应的配置，最后文件内容为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.boot.autoconfigure.EnableAutoConfiguration=net.noahsark.cas.common.config.SpringConfig,\</span><br><span class="line">  net.noahsark.cas.common.config.CasCaptchaConfiguration,\</span><br><span class="line">  net.noahsark.cas.common.config.CaptchaWebflowConfiguration,\</span><br><span class="line">  net.noahsark.cas.common.config.KaptchaConfiguration,\</span><br><span class="line">  net.noahsark.cas.common.config.DataSourceConfig</span><br></pre></td></tr></table></figure></p>
 
-          
-        
       
     </div>
 
@@ -575,280 +569,42 @@
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/31/docker-image-and-layer/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="noahsark">
-      <meta itemprop="description" content="不畏将来，不念过往">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="船长的博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2019/03/31/docker-image-and-layer/" class="post-title-link" itemprop="http://yoursite.com/index.html">docker镜像与分层</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-03-31 20:42:33" itemprop="dateCreated datePublished" datetime="2019-03-31T20:42:33+08:00">2019-03-31</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2019-04-06 16:12:26" itemprop="dateModified" datetime="2019-04-06T16:12:26+08:00">2019-04-06</time>
-              
-            
-          </span>
-
+        <div class="post-tags">
           
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/docker/" itemprop="url" rel="index"><span itemprop="name">docker</span></a></span>
-
-                
-                
-              
-            </span>
+            <a href="/tags/CAS/" rel="tag"># CAS</a>
           
-
+            <a href="/tags/SSO/" rel="tag"># SSO</a>
           
-            
+            <a href="/tags/自定义登陆页面/" rel="tag"># 自定义登陆页面</a>
           
-
+            <a href="/tags/验证码/" rel="tag"># 验证码</a>
           
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>一直对Docker中的镜像（image），分层（layer）及文件（file）三者之间的关系一直很好奇，这篇文章讲述就是这三者之间的关系。</p>
-<p><strong>环境说明：</strong><br>虚拟机：VirtualBox 5.1.38<br>操作系统：Ubuntu 16.04.5 LTS<br>docker：18.06.1-ce<br>Storage Driver：overlay2</p>
-<h2 id="1、镜像存储位置"><a href="#1、镜像存储位置" class="headerlink" title="1、镜像存储位置"></a>1、镜像存储位置</h2><p>Docker里面存放镜像的目录主要有两个：<strong>/var/lib/docker/image/{graph_driver}/及/var/lib/docker/{graph_driver}/</strong>，前一个主要是存放镜像的元数据，存储逻辑上的镜像和镜像层，后一个主要是存放镜像的数据文件，包括只读层和可读写层的文件。</p>
-<h2 id="2、镜像的元数据管理"><a href="#2、镜像的元数据管理" class="headerlink" title="2、镜像的元数据管理"></a>2、镜像的元数据管理</h2><p>以overlay2存储驱动为例，/var/lib/docker/image/overlay2/目录下结构为：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tree -L 1 overlay2/</span></span><br><span class="line">overlay2/</span><br><span class="line">├── distribution</span><br><span class="line">├── imagedb</span><br><span class="line">├── layerdb</span><br><span class="line">└── repositories.json</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li>distribution目录存放layer的diff_id与digest的对应关系，关于二者的关系后面内容再描述；</li>
-<li>imagedb、layerdb分别存放镜像及分层的元数据；</li>
-<li>repositories.json存放镜像仓库的相关数据；</li>
-</ul>
-<h3 id="2-1-repositories-json"><a href="#2-1-repositories-json" class="headerlink" title="2.1 repositories.json"></a>2.1 repositories.json</h3><p>repositories.json 中记录了和本地 image 相关的 repository 信息，主要是 name 和 image id 的对应关系，当 image 从 registry 上被 pull 下来后，就会更新该文件。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># cat repositories.json | python -mjson.tool</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">"haproxy"</span>: &#123;</span><br><span class="line">            <span class="string">"haproxy:latest"</span>: <span class="string">"sha256:08d602ba77646c322b68eee5f6e436f4438e1ae3a1ad3cba26f9baa4c148d5ec"</span>,  </span><br><span class="line">            <span class="string">"haproxy@sha256:530809f5a9910de8688fe85f6b4f0533a2418365b448a82bb590b197fe7529c0"</span>: <span class="string">"sha256:08d602ba77646c322b68eee5f6e436f4438e1ae3a1ad3cba26f9baa4c148d5ec"</span></span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li>存放了<strong>repository</strong>名称<strong>haproxy</strong>、<strong>tag(latest)</strong> 及<strong>image id(08d602…)d</strong>的信息；</li>
-<li>存放了<strong>repository image id</strong>与<strong>digest</strong>的对应关系，haproxy:latest签名为：haproxy@sha256:530809…，可以通过两种方式pull镜像，即名称(haproxy:latest)和digest；</li>
-<li>image id是Image的唯一标示，其数值根据该镜像的元数据配置文件采用sha256算法的计算获得。</li>
-</ul>
-<p>镜像的元数据配置文件存放在 <strong>/var/lib/docker/image/overlay2/imagedb/content/sha256/</strong> 目录下，文件为Image id，对该文件内容计算sha256摘要即为image id。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># sha256sum 08d602ba77646c322b68eee5f6e436f4438e1ae3a1ad3cba26f9baa4c148d5ec</span></span><br><span class="line">08d602ba77646c322b68eee5f6e436f4438e1ae3a1ad3cba26f9baa4c148d5ec  08d602ba77646c322b68eee5f6e436f4438e1ae3a1ad3cba26f9baa4c148d5e</span><br></pre></td></tr></table></figure></p>
-<h3 id="2-2-imagedb"><a href="#2-2-imagedb" class="headerlink" title="2.2 imagedb"></a>2.2 imagedb</h3><p>imagedb存放了image的元数据配置文件，该文件记录了image元数据信息，包括镜像架构、操作系统、镜像默认配置、构建该镜像的容器ID和配置、创建时间、创建该镜像的Docker版本、构建镜像的历史信息及rootfs。通过构建镜像的历史信息及rootfs中的diff_ids，可以将image和layer关联起来，还可以计算出该镜像层的存储索引chainID，计算方式见后面内容。<br>镜像元数据配置文件目录：<strong>/var/lib/docker/image/overlay2/imagedb/content/sha256/{image_id}</strong>，查看haproxy元数据配置文件如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># cat 08d602ba77646c322b68eee5f6e436f4438e1ae3a1ad3cba26f9baa4c148d5ec | python -mjson.tool</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="string">"architecture"</span>: <span class="string">"amd64"</span>,</span><br><span class="line">    <span class="string">"config"</span>: &#123;</span><br><span class="line">        <span class="string">"ArgsEscaped"</span>: <span class="literal">true</span>,</span><br><span class="line">        <span class="string">"AttachStderr"</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="string">"AttachStdin"</span>: <span class="literal">false</span>,</span><br><span class="line">        ......</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">"container"</span>: <span class="string">"5fa7b90388c618ba33fc3cc68f4768ec2f1fa113da15ffefbb2e1d1abede8ada"</span>,</span><br><span class="line">    <span class="string">"container_config"</span>: &#123;</span><br><span class="line">        <span class="string">"ArgsEscaped"</span>: <span class="literal">true</span>,</span><br><span class="line">        <span class="string">"AttachStderr"</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="string">"AttachStdin"</span>: <span class="literal">false</span>,</span><br><span class="line">        <span class="string">"AttachStdout"</span>: <span class="literal">false</span>,</span><br><span class="line">       </span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">"created"</span>: <span class="string">"2019-03-05T04:39:53.999146965Z"</span>,</span><br><span class="line">    <span class="string">"docker_version"</span>: <span class="string">"18.06.1-ce"</span>,</span><br><span class="line">    <span class="string">"history"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">"created"</span>: <span class="string">"2019-03-04T23:22:21.800977094Z"</span>,</span><br><span class="line">            <span class="string">"created_by"</span>: <span class="string">"/bin/sh -c #(nop) ADD file:5ea7dfe8c8bcc... in / "</span></span><br><span class="line">        &#125;,</span><br><span class="line">        ......</span><br><span class="line">    ],</span><br><span class="line">    <span class="string">"os"</span>: <span class="string">"linux"</span>,</span><br><span class="line">    <span class="string">"rootfs"</span>: &#123;</span><br><span class="line">        <span class="string">"diff_ids"</span>: [</span><br><span class="line">            <span class="string">"sha256:6744ca1b11903f4db4d5e26145f6dd20f9a6d321a7f725f1a0a7a45a4174c579"</span>,</span><br><span class="line">            <span class="string">"sha256:885806cf466d56e36824a1623f362349202c6e4e8f7aab64e174519b66484fea"</span>,</span><br><span class="line">            <span class="string">"sha256:28de19851da2a6dbe597cf23e1637b14d4c51f7074ae01dd9818e131c62e430e"</span></span><br><span class="line">        ],</span><br><span class="line">        <span class="string">"type"</span>: <span class="string">"layers"</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li>在rootfs中diff_ids包含了三个分层layer，从上到下依次是从底层到顶层，最底层是6744a…，最顶层是28de1…，通过diff_ids，可以将镜像与分层关联起来，如何关联见下面内容。</li>
-<li>在该镜像中，有三个只读层，再加上一个init层，一个可读写层，总共有五个分层layer。</li>
-</ul>
-<h3 id="2-3-layerdb"><a href="#2-3-layerdb" class="headerlink" title="2.3 layerdb"></a>2.3 layerdb</h3><p>docker中的镜像是分层的，划分为只读层和读写层。其中docker定义了roLayer接口来描述只读的镜像层，定义了mountLayer来描述可读写的容器层。这两个层分别存放在了两个目录中：<br><strong>roLayer:/var/lib/docker/image/overlay2/layerdb/sha256/{chainID}</strong><br><strong>mountLayer:/var/lib/docker/image/overlay2/layerdb/mounts/{container_id}</strong></p>
-<h4 id="2-3-1-layer只读层"><a href="#2-3-1-layer只读层" class="headerlink" title="2.3.1 layer只读层"></a>2.3.1 layer只读层</h4><p>在layer的属性中，diffID采用SHA256算法，基于分层文件包中的内容计算得到。而chainID是基于内容存储的索引，这是根据当前层与所有祖先镜像层diffId计算出来的，具体算法如下：</p>
-<ol>
-<li>如果该镜像层是最底层（没有父镜像层），该层的diffID便是chainID；</li>
-<li>如果不是最底层，chainID的计算公式为：chainID(n)=SHA256(chain(n-1) diffID(n))，也就是第n层的chainID根据父层的chainID加上一个空格和当前的diffID，再计算SHA256摘要。</li>
-</ol>
-<p>根据计算公式，haproxy对应的chainID分别为：<br>第一层：6744ca1b11903f4db4d5e26145f6dd20f9a6d321a7f725f1a0a7a45a4174c579<br>第二层：68972fe3e03c5b26652f08aa8af0b06702c02208f987da2b1b873e057d456467<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># echo -n "sha256:6744ca1b11903f4db4d5e26145f6dd20f9a6d321a7f725f1a0a7a45a4174c579 sha256:885806cf466d56e36824a1623f362349202c6e4e8f7aab64e174519b66484fea"|sha256sum -</span></span><br><span class="line">68972fe3e03c5b26652f08aa8af0b06702c02208f987da2b1b873e057d456467  -</span><br></pre></td></tr></table></figure></p>
-<p>第三层：b5e0c75383b6d3a7dc43abebb31431017676f1e4209d4704963f52ce0b32b96b<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># echo -n "sha256:68972fe3e03c5b26652f08aa8af0b06702c02208f987da2b1b873e057d456467 sha256:28de19851da2a6dbe597cf23e1637b14d4c51f7074ae01dd9818e131c62e430e"|sha256sum -</span></span><br><span class="line">b5e0c75383b6d3a7dc43abebb31431017676f1e4209d4704963f52ce0b32b96b  -</span><br></pre></td></tr></table></figure></p>
-<p>以第二层为例，查看第二层的目录/var/lib/docker/image/overlay2/layerdb/sha256/68972fe3e03c5b26652f08aa8af0b06702c02208f987da2b1b873e057d456467<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tree -L 1 68972fe3e03c5b26652f08aa8af0b06702c02208f987da2b1b873e057d456467</span></span><br><span class="line">68972fe3e03c5b26652f08aa8af0b06702c02208f987da2b1b873e057d456467</span><br><span class="line">├── cache-id</span><br><span class="line">├── diff</span><br><span class="line">├── parent</span><br><span class="line">├── size</span><br><span class="line">└── tar-split.json.gz</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li><p><strong>cache-id</strong>：由宿主机随即生成的一个uuid，与镜像层文件一一对应，指向真正存放 layer 文件的地方；</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more cache-id </span></span><br><span class="line">9c58547be8d230a221107f2ac644c713eb9b8c820e1a22b351ce3e686b730b1b</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>diff</strong>：镜像层校验ID、根据该镜像层的打包文件校验获得；</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more diff</span></span><br><span class="line">sha256:885806cf466d56e36824a1623f362349202c6e4e8f7aab64e174519b66484fea</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>parent</strong>：父镜像层的chainID(最底层不含该文件)；</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more parent</span></span><br><span class="line">sha256:6744ca1b11903f4db4d5e26145f6dd20f9a6d321a7f725f1a0a7a45a4174c579</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>size</strong>：当前layer的大小，单位是字节；</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more size</span></span><br><span class="line">16815636</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>tar-split.json.gz</strong>：layer 压缩包的 split 文件，通过这个文件可以还原 layer 的 tar 包，详情可参考 <a href="https://github.com/vbatts/tar-split。" target="_blank" rel="noopener">https://github.com/vbatts/tar-split。</a></p>
-</li>
-</ul>
-<h4 id="2-3-2-容器可读写层"><a href="#2-3-2-容器可读写层" class="headerlink" title="2.3.2 容器可读写层"></a>2.3.2 容器可读写层</h4><p>容器可读写层在容器启动之后挂载在以容器id为目录的目录下。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker run -it --name HAProxy -p 6301:6301 haproxy /bin/bash</span></span><br><span class="line"><span class="comment"># docker ps </span></span><br><span class="line">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES</span><br><span class="line">3c262b6de295        haproxy             <span class="string">"/docker-entrypoint.…"</span>   19 seconds ago      Up 18 seconds       0.0.0.0:6301-&gt;6301/tcp   HAProxy</span><br></pre></td></tr></table></figure></p>
-<p>根据haproxy的容器3c262b6de295(前12位)，查看/var/lib/docker/image/overlay2/layerdb/mounts/3c262b6de2955f531994d547f2902752bf52f88f1172ca0c6c29fbfa60ac4b7a目录：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tree -L 1 3c262b6de2955f531994d547f2902752bf52f88f1172ca0c6c29fbfa60ac4b7a</span></span><br><span class="line">3c262b6de2955f531994d547f2902752bf52f88f1172ca0c6c29fbfa60ac4b7a/</span><br><span class="line">├── init-id</span><br><span class="line">├── mount-id</span><br><span class="line">└── parent</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li><p><strong>init-id</strong>：容器init层的mount-id，指向了layer数据文件目录；</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more init-id</span></span><br><span class="line">c3deeb4325373415ca2d2043aed5b28c5098169e72b3f25788b1d5eb1b4f420e-init</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>mount-id</strong>：读写层的mount-id，指向了layer数据文件目录；</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more mount-id</span></span><br><span class="line">c3deeb4325373415ca2d2043aed5b28c5098169e72b3f25788b1d5eb1b4f420e</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>parent</strong>：容器层的父镜像层的chainID，对应只读层中的最顶层即第三层。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more parent</span></span><br><span class="line">sha256:b5e0c75383b6d3a7dc43abebb31431017676f1e4209d4704963f52ce0b32b96b</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>根据</p>
-<h2 id="3、layer数据文件"><a href="#3、layer数据文件" class="headerlink" title="3、layer数据文件"></a>3、layer数据文件</h2><p>layer镜像分层的数据文件存储在/var/lib/docker/overlay2/{mount-id}/下，根据元数据目录下的cache-id就是mount-id，如下所示：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more 6744ca1b11903f4db4d5e26145f6dd20f9a6d321a7f725f1a0a7a45a4174c579/cache-id</span></span><br><span class="line">367818b00c1569667c3f0eb8b0580c770251612d4ab16a477c5349dd20a6fd65</span><br></pre></td></tr></table></figure></p>
-<h3 id="3-1-最底层layer本地文件"><a href="#3-1-最底层layer本地文件" class="headerlink" title="3.1 最底层layer本地文件"></a>3.1 最底层layer本地文件</h3><p>chainId为6744ca1b11903f4db4d5e26145f6dd20f9a6d321a7f725f1a0a7a45a4174c579的layer对应的cacheID为367818b00c1569667c3f0eb8b0580c770251612d4ab16a477c5349dd20a6fd65，查看/var/lib/docker/overlay2/367818b00c1569667c3f0eb8b0580c770251612d4ab16a477c5349dd20a6fd65：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tree -L 2 367818b00c1569667c3f0eb8b0580c770251612d4ab16a477c5349dd20a6fd65/</span></span><br><span class="line">367818b00c1569667c3f0eb8b0580c770251612d4ab16a477c5349dd20a6fd65/</span><br><span class="line">├── diff</span><br><span class="line">│   ├── bin</span><br><span class="line">│   ├── boot</span><br><span class="line">│   ├── dev</span><br><span class="line">│   ├── etc</span><br><span class="line">│   ├── home</span><br><span class="line">│   ├── lib</span><br><span class="line">│   ├── lib64</span><br><span class="line">│   ├── media</span><br><span class="line">│   ├── mnt</span><br><span class="line">│   ├── opt</span><br><span class="line">│   ├── proc</span><br><span class="line">│   ├── root</span><br><span class="line">│   ├── run</span><br><span class="line">│   ├── sbin</span><br><span class="line">│   ├── srv</span><br><span class="line">│   ├── sys</span><br><span class="line">│   ├── tmp</span><br><span class="line">│   ├── usr</span><br><span class="line">│   └── var</span><br><span class="line">└── link</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li><strong>diff</strong>：该目录存放了真实的数据；</li>
-<li><strong>link</strong>：该文件存放了该层的符号链接名称，该符号链接更短，主要用来避免挂载时超出页面大小的限制，指向diff目录；<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more link</span></span><br><span class="line">7UCN35ON2ZKX3DX5BA2E6NIBNF</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>符号链接定义如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ll l/7UCN35ON2ZKX3DX5BA2E6NIBNF</span></span><br><span class="line">l/7UCN35ON2ZKX3DX5BA2E6NIBNF -&gt; ../367818b00c1569667c3f0eb8b0580c770251612d4ab16a477c5349dd20a6fd65/diff/</span><br></pre></td></tr></table></figure></p>
-<h3 id="3-2-第二层Layer本地文件"><a href="#3-2-第二层Layer本地文件" class="headerlink" title="3.2 第二层Layer本地文件"></a>3.2 第二层Layer本地文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tree -L 1 9c58547be8d230a221107f2ac644c713eb9b8c820e1a22b351ce3e686b730b1b/</span></span><br><span class="line">9c58547be8d230a221107f2ac644c713eb9b8c820e1a22b351ce3e686b730b1b/</span><br><span class="line">├── diff</span><br><span class="line">├── link</span><br><span class="line">├── lower</span><br><span class="line">└── work</span><br></pre></td></tr></table></figure>
-<ul>
-<li>在第二层多了一个lower文件及work目录，其中lower文件内容是所有祖先layer diff目录的短符号链接名称， work 目录则是用来完成如 copy-on_write 的操作。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more lower</span></span><br><span class="line">l/7UCN35ON2ZKX3DX5BA2E6NIBNF</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>文件的内容即为父层diff目录的短符号连接文件。</p>
-<p>第三层同第二层，略</p>
-<h3 id="3-3-init层本地文件"><a href="#3-3-init层本地文件" class="headerlink" title="3.3 init层本地文件"></a>3.3 init层本地文件</h3><p>根据init-id文件中的内容，定位到该本地文件目录：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tree -L 1 c3deeb4325373415ca2d2043aed5b28c5098169e72b3f25788b1d5eb1b4f420e-init</span></span><br><span class="line">c3deeb4325373415ca2d2043aed5b28c5098169e72b3f25788b1d5eb1b4f420e-init/</span><br><span class="line">├── diff</span><br><span class="line">├── link</span><br><span class="line">├── lower</span><br><span class="line">└── work</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li>lower文件存放了三个只读层的符号链接文件；<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more lower</span></span><br><span class="line">l/FU73TC6QKNZAZFGL5OLEHODVJY:l/Z34ST5SRLSB2UZTL6AUMICY7NI:l/7UCN35ON2ZKX3DX5BA2E6NIBNF</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<h3 id="3-4-读写层本地文件"><a href="#3-4-读写层本地文件" class="headerlink" title="3.4 读写层本地文件"></a>3.4 读写层本地文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tree -L 1 c3deeb4325373415ca2d2043aed5b28c5098169e72b3f25788b1d5eb1b4f420e</span></span><br><span class="line">c3deeb4325373415ca2d2043aed5b28c5098169e72b3f25788b1d5eb1b4f420e</span><br><span class="line">├── diff</span><br><span class="line">├── link</span><br><span class="line">├── lower</span><br><span class="line">├── merged</span><br><span class="line">└── work</span><br></pre></td></tr></table></figure>
-<ul>
-<li><strong>lower</strong> ：该文件存放了init层及三个只读层diff目录的短符号链接文件名称；</li>
-<li><strong>merged</strong> ：每当启动一个容器时，会将 link 指向的镜像层目录以及 lower 指向的镜像层目录联合挂载到 merged 目录，因此，容器内的视角就是 merged 目录下的内容。</li>
-</ul>
-<h2 id="4-结论"><a href="#4-结论" class="headerlink" title="4 结论"></a>4 结论</h2><p>通过镜像文件的元数据信息我们可以找到分层Layer及本地数据文件之间的关联，对理解docker文件系统有很大的帮助：</p>
-<ol>
-<li>在本地镜像仓库文件repositories.json找到镜像的imageid，根据imageid找到image的元数据配置文件；</li>
-<li>在image元数据配置文件rootfs元素中找到layer的diffid;</li>
-<li>根据计算公式，将diffid转化为chaninid，chainid即为只读分层元数据文件的目录；</li>
-<li>在chainid目录下，cache-id文件存储了该分层数据文件的挂载目录cacheid；</li>
-<li>根据cacheid在overlays存储驱动下即可找到该层的数据文件；</li>
-<li>根据启动之后的contanerid,找到可读写层的元文件目录，init-id文件内容即为init层的挂载目录，而mount-id即为可读写层的挂载目录；</li>
-<li>根据可读写层的挂载目录即可找到相应的数据文件。</li>
-</ol>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-       
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
       
 
       
       
-        <div class="post-eof"></div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/31/docker-image-and-layer/" rel="next" title="docker镜像与分层">
+                <i class="fa fa-chevron-left"></i> docker镜像与分层
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
       
     </footer>
   </div>
@@ -858,14 +614,15 @@
   </article>
 
 
-    
-  </section>
-
-  
+  </div>
 
 
           </div>
           
+
+  
+
+
 
         </div>
         
@@ -886,8 +643,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
@@ -973,6 +739,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1、下载CAS-overlay-template"><span class="nav-number">1.</span> <span class="nav-text">1、下载CAS overlay template</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2、配置SSL环境"><span class="nav-number">2.</span> <span class="nav-text">2、配置SSL环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-生成证书"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 生成证书</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-在hosts文件中配置域名与地址"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 在hosts文件中配置域名与地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-在工程中配置开启SSL"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 在工程中配置开启SSL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-在Service文件中设置HTTPS"><span class="nav-number">2.4.</span> <span class="nav-text">2.4 在Service文件中设置HTTPS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-在tomcat中配置证书"><span class="nav-number">2.5.</span> <span class="nav-text">2.5 在tomcat中配置证书</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3、自定义登录页面"><span class="nav-number">3.</span> <span class="nav-text">3、自定义登录页面</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-添加Service"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 添加Service</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-定义JS-CSS等文件"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 定义JS,CSS等文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-定义theme属性文件"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 定义theme属性文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-定义模板文件"><span class="nav-number">3.4.</span> <span class="nav-text">3.4 定义模板文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-修改系统默认的主题"><span class="nav-number">3.5.</span> <span class="nav-text">3.5 修改系统默认的主题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-定义登录成功之后的页面"><span class="nav-number">3.6.</span> <span class="nav-text">3.6 定义登录成功之后的页面</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4、自定义用户鉴权"><span class="nav-number">4.</span> <span class="nav-text">4、自定义用户鉴权</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-生成AuthenticationHandler子类"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 生成AuthenticationHandler子类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-生成configureAuthenticationExecutionPlan类"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 生成configureAuthenticationExecutionPlan类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-将CasCaptchaConfiguration类注册到Spirng容器中"><span class="nav-number">4.3.</span> <span class="nav-text">4.3 将CasCaptchaConfiguration类注册到Spirng容器中</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-实现业务方法"><span class="nav-number">4.4.</span> <span class="nav-text">4.4 实现业务方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5、加入验证码"><span class="nav-number">5.</span> <span class="nav-text">5、加入验证码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-修改登录页面，加入验证码字段"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 修改登录页面，加入验证码字段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-创建包含验证码字段的Credential对象"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 创建包含验证码字段的Credential对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-修改webflow中绑定的Credential对象"><span class="nav-number">5.3.</span> <span class="nav-text">5.3 修改webflow中绑定的Credential对象</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-1-生成CasWebflowConfigurer对象"><span class="nav-number">5.3.1.</span> <span class="nav-text">5.3.1 生成CasWebflowConfigurer对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-2-生成Spring配置对象CaptchaWebflowConfiguration"><span class="nav-number">5.3.2.</span> <span class="nav-text">5.3.2 生成Spring配置对象CaptchaWebflowConfiguration</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-3-自动加载CaptchaWebflowConfiguration对象"><span class="nav-number">5.3.3.</span> <span class="nav-text">5.3.3 自动加载CaptchaWebflowConfiguration对象</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-后台生成验证码"><span class="nav-number">5.4.</span> <span class="nav-text">5.4 后台生成验证码</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-1-引入依赖"><span class="nav-number">5.4.1.</span> <span class="nav-text">5.4.1 引入依赖</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-2-配置生成验证码的Servlet对象"><span class="nav-number">5.4.2.</span> <span class="nav-text">5.4.2 配置生成验证码的Servlet对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-3-自动加载KaptchaConfiguration对象"><span class="nav-number">5.4.3.</span> <span class="nav-text">5.4.3 自动加载KaptchaConfiguration对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-4-修改AuthenticationHandler对象，加入验证码逻辑"><span class="nav-number">5.4.4.</span> <span class="nav-text">5.4.4. 修改AuthenticationHandler对象，加入验证码逻辑</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6、自定义登录错误信息"><span class="nav-number">6.</span> <span class="nav-text">6、自定义登录错误信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-生成异常对象"><span class="nav-number">6.1.</span> <span class="nav-text">6.1 生成异常对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-配置语言文件"><span class="nav-number">6.2.</span> <span class="nav-text">6.2 配置语言文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7、其它配置"><span class="nav-number">7.</span> <span class="nav-text">7、其它配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-配置数据源及业务对象"><span class="nav-number">7.1.</span> <span class="nav-text">7.1 配置数据源及业务对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-配置Spring容器的扫描目录，加载Service及Dao对象"><span class="nav-number">7.2.</span> <span class="nav-text">7.2 配置Spring容器的扫描目录，加载Service及Dao对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-加载DataSourceConfig及SpringConfig对象"><span class="nav-number">7.3.</span> <span class="nav-text">7.3 加载DataSourceConfig及SpringConfig对象</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -1101,6 +883,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
 
   
 
