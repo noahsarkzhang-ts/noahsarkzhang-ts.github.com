@@ -129,7 +129,7 @@
 <meta property="og:image" content="http://yoursite.com/images/transferqueue-2.jpg">
 <meta property="og:image" content="http://yoursite.com/images/transferqueue-3.jpg">
 <meta property="og:image" content="http://yoursite.com/images/transferqueue-4.jpg">
-<meta property="og:updated_time" content="2019-09-07T10:01:54.231Z">
+<meta property="og:updated_time" content="2019-09-07T10:05:38.721Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="SynchronousQueue 原理">
 <meta name="twitter:description" content="这篇文章主要讲述SynchronousQueue数据结构及在线程池中的应用。 1. 概述在生产者和消费者的线程模型下，生产者线程生产数据（事件，任务等），消费者线程消费数据。通常情况下，它们需要一个中间的数据结构来交换数据，如队列。生成者线程将数据存入队列，若队列满了则阻塞生产者线程，等待消费者线程唤醒；消费者线程从队列取数据，若队列为空则阻塞消费者线程，等待生产者线程唤醒。在这种场景下，如果生产">
@@ -442,7 +442,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-09-07 18:01:54" itemprop="dateModified" datetime="2019-09-07T18:01:54+08:00">2019-09-07</time>
+                <time title="修改时间：2019-09-07 18:05:38" itemprop="dateModified" datetime="2019-09-07T18:05:38+08:00">2019-09-07</time>
               
             
           </span>
@@ -632,7 +632,7 @@
 <p>获取任务的关键代码主要是这行语句：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS)</span><br></pre></td></tr></table></figure></p>
 <p>这行语句有如下功能：获取任务，如果没有匹配的操作，则会阻塞60S，这里的60S就是线程空闲时间；如果有匹配的操作，则直接获取交付的数据。在这里，如果是超时返回的话，该工作线程会退出，且工作线程的数量会减1。</p>
 <p>通过上面的分析，我们可以看出，提交任务使用不阻塞的offer方法，获取任务使用带超时的阻塞方法poll。不管offer成功与否，总能保证有工作线程去马上去执行任务，如果没有可复用的工作线程，则会创建一个新的工作线程来执行，另外SynchronousQueue只会阻塞工作线程，即队列中只会有工作线程，不会有提交任务的线程。</p>
-<h2 id="6-总结"><a href="#6-总结" class="headerlink" title="6. 总结"></a>6. 总结</h2><p>这篇文章分析了SynchronousQueue的底层数据结构及在线程中的运用，并对相关代码进行了分析，希望能够对想了解SynchronousQueue的同学有所帮助。</p>
+<h2 id="6-总结"><a href="#6-总结" class="headerlink" title="6. 总结"></a>6. 总结</h2><p>这篇文章分析了SynchronousQueue的底层数据结构及在线程池中的运用，并对相关代码进行了分析，希望能够对想了解SynchronousQueue的同学有所帮助。</p>
 <p><strong>参考：</strong></p>
 <hr>
 <p><a href="https://www.jianshu.com/p/376d368cb44f" target="_blank" rel="noopener">1. Java阻塞队列SynchronousQueue详解</a></p>
@@ -686,6 +686,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/10/delayworkqueue-principles/" rel="prev" title="DelayedWorkQueue 原理">
+                DelayedWorkQueue 原理 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -758,7 +762,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-count">12</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -783,7 +787,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">6</span>
+                      
+                    
+                    <span class="site-state-item-count">7</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -850,7 +856,39 @@
                     
                       
                     
-                    <span class="site-state-item-count">27</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">39</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
