@@ -108,23 +108,23 @@
 
 
 
-  <meta name="description" content="1. LSM-TreeLSM-Tree(Log-Structured Merge Tree)广泛用于key-value存储引擎库中，如LevelDB和RocksDB，类似的存储引擎还用于Cassandra和HBase中，它的主要特征包括：1）数据顺序写入，不支持更新（更新及删除通过压缩合并数据段来实现）；2）数据写入操作内存表，数据异步写入磁盘；3）数据以SSTable段的形式写入磁盘，按照key">
+  <meta name="description" content="概括来讲，存储引擎分为两大类：针对事务处理（OLTP）优化的结构，以及针对分析型（OLAP）的优化结构。它们典型的访问模式存在很大的差异：  OLTP系统通常面向用户，这意味着它们可能收到大量的请求。为了处理负载，应用程序通常在每个用户查询中只涉及小量的记录。应用程序基于某种键来请求记录，而存储引擎使用索引来查找所请求的数据。磁盘寻道时间往往是瓶颈。 由于不直接面对最终用户，数据仓库和类似的分析系">
 <meta name="keywords" content="b-tree,sstables,lsm-tree,wal,索引">
 <meta property="og:type" content="article">
 <meta property="og:title" content="存储引擎">
 <meta property="og:url" content="http://yoursite.com/2020/05/05/storage-model/index.html">
 <meta property="og:site_name" content="船长的博客">
-<meta property="og:description" content="1. LSM-TreeLSM-Tree(Log-Structured Merge Tree)广泛用于key-value存储引擎库中，如LevelDB和RocksDB，类似的存储引擎还用于Cassandra和HBase中，它的主要特征包括：1）数据顺序写入，不支持更新（更新及删除通过压缩合并数据段来实现）；2）数据写入操作内存表，数据异步写入磁盘；3）数据以SSTable段的形式写入磁盘，按照key">
+<meta property="og:description" content="概括来讲，存储引擎分为两大类：针对事务处理（OLTP）优化的结构，以及针对分析型（OLAP）的优化结构。它们典型的访问模式存在很大的差异：  OLTP系统通常面向用户，这意味着它们可能收到大量的请求。为了处理负载，应用程序通常在每个用户查询中只涉及小量的记录。应用程序基于某种键来请求记录，而存储引擎使用索引来查找所请求的数据。磁盘寻道时间往往是瓶颈。 由于不直接面对最终用户，数据仓库和类似的分析系">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://yoursite.com/images/lsm-tree.jpg">
 <meta property="og:image" content="http://yoursite.com/images/lsm-tree-combine.jpg">
 <meta property="og:image" content="http://yoursite.com/images/b-tree.jpg">
 <meta property="og:image" content="http://yoursite.com/images/b-tree-index.jpg">
 <meta property="og:image" content="http://yoursite.com/images/b-tree-split.jpg">
-<meta property="og:updated_time" content="2020-05-05T14:20:30.153Z">
+<meta property="og:updated_time" content="2020-05-10T04:18:16.597Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="存储引擎">
-<meta name="twitter:description" content="1. LSM-TreeLSM-Tree(Log-Structured Merge Tree)广泛用于key-value存储引擎库中，如LevelDB和RocksDB，类似的存储引擎还用于Cassandra和HBase中，它的主要特征包括：1）数据顺序写入，不支持更新（更新及删除通过压缩合并数据段来实现）；2）数据写入操作内存表，数据异步写入磁盘；3）数据以SSTable段的形式写入磁盘，按照key">
+<meta name="twitter:description" content="概括来讲，存储引擎分为两大类：针对事务处理（OLTP）优化的结构，以及针对分析型（OLAP）的优化结构。它们典型的访问模式存在很大的差异：  OLTP系统通常面向用户，这意味着它们可能收到大量的请求。为了处理负载，应用程序通常在每个用户查询中只涉及小量的记录。应用程序基于某种键来请求记录，而存储引擎使用索引来查找所请求的数据。磁盘寻道时间往往是瓶颈。 由于不直接面对最终用户，数据仓库和类似的分析系">
 <meta name="twitter:image" content="http://yoursite.com/images/lsm-tree.jpg">
 
 
@@ -417,12 +417,24 @@
                 
               
 
-              <time title="创建时间：2020-05-05 16:20:33 / 修改时间：22:20:30" itemprop="dateCreated datePublished" datetime="2020-05-05T16:20:33+08:00">2020-05-05</time>
+              <time title="创建时间：2020-05-05 16:20:33" itemprop="dateCreated datePublished" datetime="2020-05-05T16:20:33+08:00">2020-05-05</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-05-10 12:18:16" itemprop="dateModified" datetime="2020-05-10T12:18:16+08:00">2020-05-10</time>
               
             
           </span>
@@ -483,7 +495,15 @@
       
 
       
-        <h2 id="1-LSM-Tree"><a href="#1-LSM-Tree" class="headerlink" title="1. LSM-Tree"></a>1. LSM-Tree</h2><p>LSM-Tree(Log-Structured Merge Tree)广泛用于key-value存储引擎库中，如LevelDB和RocksDB，类似的存储引擎还用于Cassandra和HBase中，它的主要特征包括：1）数据顺序写入，不支持更新（更新及删除通过压缩合并数据段来实现）；2）数据写入操作内存表，数据异步写入磁盘；3）数据以SSTable段的形式写入磁盘，按照key进行排序，定期对数据段进行压缩合并；4）在内存中建立索引，由于数据段已经排序，只需要记录段首的记录即可。其结构如下所示：<br><img src="/images/lsm-tree.jpg" alt="lsm-tree" title="lsm-tree"></p>
+        <p>概括来讲，存储引擎分为两大类：针对事务处理（OLTP）优化的结构，以及针对分析型（OLAP）的优化结构。它们典型的访问模式存在很大的差异：</p>
+<ul>
+<li>OLTP系统通常面向用户，这意味着它们可能收到大量的请求。为了处理负载，应用程序通常在每个用户查询中只涉及小量的记录。应用程序基于某种键来请求记录，而存储引擎使用索引来查找所请求的数据。磁盘寻道时间往往是瓶颈。</li>
+<li>由于不直接面对最终用户，数据仓库和类似的分析系统相对并不太广为人知，它们主要由业务分析师使用。处理的查询请求数目远低于OLTP系统，但每个查询通常要求非常苛刻，需要在短时间内扫描百万条记录。磁盘带宽（不是寻道时间）通常是瓶颈，而面向列的存储对于这种工作负载成为日益流行的解决方案。<br>在OLTP方面，有两个主要流派的存储引擎：</li>
+<li>日志结构流派：它只允许追加方式更新文件和删除过时的文件，但不会修改已写入的文件。BitCask、SSTable、LST-Tree、LevelDB、Cassandra、HBase、Lucence等属于此类；</li>
+<li>原地更新流派：将磁盘视为可以覆盖的一组固定大小的页。B-Tree是这个哲学的最典型代表，它已用于所有主要的关系数据库，以及大量的非关系数据库。</li>
+</ul>
+<p>日志结构的存储引擎是一个相对较新的方案。其关键思想是系统地将磁盘上随机访问写入转为顺序写入，由于硬盘驱动器和SSD的性能特性，可以实现更高的写入吞吐量。下面将针对这两种存储引擎进行分析。</p>
+<h2 id="1-LSM-Tree"><a href="#1-LSM-Tree" class="headerlink" title="1. LSM-Tree"></a>1. LSM-Tree</h2><p>LSM-Tree(Log-Structured Merge Tree)广泛用于key-value存储引擎库中，如LevelDB和RocksDB，类似的存储引擎还用于Cassandra和HBase中，它的主要特征包括：1）数据顺序写入，不支持更新（更新及删除通过压缩合并数据段来实现）；2）数据写入操作内存表，数据异步写入磁盘；3）数据以SSTable段的形式写入磁盘，按照key进行排序，定期对数据段进行压缩合并；4）在内存中建立索引，由于数据段已经排序，只需要记录段首的记录即可。其结构如下所示：<br><img src="/images/lsm-tree.jpg" alt="lsm-tree" title="lsm-tree"></p>
 <p>LSM-Tree存储引擎数据存储于SSTables中，一个SSTables表示一个数据段，存储的是key-value值，且按照key进行排序，这种格式也称为排序字符串表。SSTables有两种形式，在内存中，采用的数据结构主要是树状数据结构，如红黑树或AVL树，进行内存排序；内存中的SSTables大于某个阈值时，顺序写入到磁盘中的日志文件中。</p>
 <p>LSM-Tree存储引擎的工作流程如下：</p>
 <ul>
@@ -500,6 +520,8 @@
 <p>如果更新B-Tree中原有的值，首先搜索包含该key的叶子页，更改该页的值，并将页定回到磁盘（对该页的任何引用仍然有效）。如果要添加新key，则需要找到其范围包含新key的页，并将其添加到该页，如果页中没有足够的可用空间来容纳新key，则将其分裂为两个半满的页，并且父页也需要更新以包含分裂之后的新key范围，如下图所示：<br><img src="/images/b-tree-split.jpg" alt="b-tree-split" title="b-tree-split"><br>该算法确保树保持平衡：具有n个key的B-Tree总是具有O(log n)的深度，大多数数据库可以适合3~4层的B-Tree，因此不需要遍历非常深的页面层次即可找到所需的页（分支因子为500的4 KB页的四级树可以存储高达256 TB）。</p>
 <p>为了使数据库能从崩溃中恢复，常见的B-Tree的实现需要支持磁盘上的额外的数据结构：预写日志（Write-ahead log,WAL），也称为重做日志。这是一个仅支持追加修改的文件，每一个B-Tree的修改必须先更新WAL然后再修改树本身的页。当数据库在崩溃后需要恢复时，该日志用于将B-Tree恢复到最近一致的状态。</p>
 <h2 id="3-对比B-Tree和LSM-Tree"><a href="#3-对比B-Tree和LSM-Tree" class="headerlink" title="3. 对比B-Tree和LSM-Tree"></a>3. 对比B-Tree和LSM-Tree</h2><p>根据经验，LSM-Tree通常对于写入更快，而B-Tree被认为对于读取更快。读取通常在LSM-Tree上较慢，主要是因为它们必须在不同的压缩阶段检查多个不同的数据结构和SSTable。</p>
+<h3 id="3-1-磁盘写入"><a href="#3-1-磁盘写入" class="headerlink" title="3.1 磁盘写入"></a>3.1 磁盘写入</h3><p>B-Tree索引必须至少写两次数据：一个写入预写日志，一次写入树的页本身（还可能发生页分裂）。即使该页中只有几个字节更改，也必须承受整个页的开销。另外，B-Tree存储引擎使用与磁盘类似的分页结构，存在磁盘的碎片化。<br>LSM-Tree数据通常是写入内存表，内存表达到一定阈值的时候再统一写入磁盘，对于磁盘上的SStable段文件由后台线程进行合并压缩，效率更高，同时也会减少磁盘碎片。相对B-Tree来说，具有更高的写入吞吐量。</p>
+<h3 id="3-2-事务支持"><a href="#3-2-事务支持" class="headerlink" title="3.2 事务支持"></a>3.2 事务支持</h3><p>B-Tree的优点则是每个键都恰好唯一对应于索引中的某个位置，而日志结构的存储引擎可能在不同的段中具有相同键的多个副本。如果数据库希望提供强大的事务语义，B-Tree显得更具吸引力：在许多关系数据库，事务隔离是通过键范围上的锁来实现的，并且在B-Tree索引中，这些锁可以直接定义到树中。</p>
 <p><strong>参考：</strong></p>
 <hr>
 <p><a href="https://book.douban.com/subject/30329536/" target="_blank" rel="noopener">1. 数据密集型应用系统设计</a></p>
@@ -815,7 +837,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-LSM-Tree"><span class="nav-number">1.</span> <span class="nav-text">1. LSM-Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-B-Tree"><span class="nav-number">2.</span> <span class="nav-text">2. B-Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-对比B-Tree和LSM-Tree"><span class="nav-number">3.</span> <span class="nav-text">3. 对比B-Tree和LSM-Tree</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-LSM-Tree"><span class="nav-number">1.</span> <span class="nav-text">1. LSM-Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-B-Tree"><span class="nav-number">2.</span> <span class="nav-text">2. B-Tree</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-对比B-Tree和LSM-Tree"><span class="nav-number">3.</span> <span class="nav-text">3. 对比B-Tree和LSM-Tree</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-磁盘写入"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 磁盘写入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-事务支持"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 事务支持</span></a></li></ol></li></ol></div>
             
 
           </div>
