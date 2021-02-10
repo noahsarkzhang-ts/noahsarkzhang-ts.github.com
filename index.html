@@ -368,6 +368,296 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/31/mysql-log/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="noahsark">
+      <meta itemprop="description" content="不畏将来，不念过往">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="船长的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2021/01/31/mysql-log/" class="post-title-link" itemprop="http://yoursite.com/index.html">Mysql 事务日志</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2021-01-31 17:56:29" itemprop="dateCreated datePublished" datetime="2021-01-31T17:56:29+08:00">2021-01-31</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-02-10 12:41:12" itemprop="dateModified" datetime="2021-02-10T12:41:12+08:00">2021-02-10</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/数据库/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/01/31/mysql-log/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2021/01/31/mysql-log/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><p>在 Mysql 中，存储有三种日志，分别是 binlog log、undo log及 redo log，其中 binlog 日志由 Mysql Server 生成，用来记录对数据库的更新操作，使用场景有主从同步及数据恢复；undo log及 redo log由 Innodb 存储引擎生成，用于保障事务进行。undo日志用于事务的回滚及MVCC，实现事务的原子性，而 redo log基于 WAL（ Write-Ahead Logging） 技术，存储事务过程中对数据表的修改，主要是数据页的修改，保证了事务的持久性。这三种日志在数据库表的更新操作（包括新增、修改及删除）中，相互配合，保障了事务的顺利执行，下图以一次数据更新操作演示了它们的工作机制。<br><img src="/images/mysql-log/mysql-transaction-overview.jpg" alt="mysql-transaction-overview" title="mysql-transaction-overview"></p>
+<ol>
+<li>undo log 存储在系统表空间中（新版的 Mysql 已经可以设置独立的表空间），对 undo log 的更改同样记录到 redo log中；</li>
+<li>redo log 由独立的日志文件存储，日志文件只有追加操作，顺序写入到磁盘中，相比数据页的随机写入，具有较高的效率；</li>
+<li>binlog log 配合 redo log，实现了内部的 XA 协议，保证了数据在 Innodb 及 Mysql 之间的一致性。</li>
+</ol>
+<h2 id="2-基础概念"><a href="#2-基础概念" class="headerlink" title="2. 基础概念"></a>2. 基础概念</h2><p><strong>内存缓冲池</strong><br>如果 Mysql 不使用内存缓冲池，每次读取数据时，都需要访问磁盘，会大大的增加磁盘的 IO 请求，导致效率低下；Innodb 引擎在读取数据的时候，把相应的数据和索引载入到内存的缓冲池（buffer pool）中，一定程度的提高了数据的读写速度。</p>
+<p><strong>buffer pool</strong><br>用来存放各种数据的缓存，这些数据包括：索引页、数据页、undo 页、插入缓冲、自适应哈希索引、Innodb 存储的锁信息及数据字典等。工作方式是将数据库文件按照页（每页16k）读取到缓冲池，然后按照最近最少使用算法（LRU）来保留缓冲池中的缓冲数据。如果数据库文件需要修改，总是首先修改在缓冲池中的页（发生修改后即成为脏页），然后在按照一定的频率将缓冲池中的脏页刷新到文件。</p>
+<p><strong>表空间</strong><br>表空间可以看作是 InnoDB 存储引擎 逻辑结构的最高层。表空间文件：InnoDB默认的表空间文件为 ibdata1。</p>
+<ul>
+<li>页：每页数据为16kb，且不能进行修改。常见的页类型有：数据页，Undo页，系统页，事务数据页，插入缓冲位图页，插入缓冲空闲列表页，未压缩的二进制大对象页，压缩的二进制大对象页</li>
+<li>区：由64个连续的页组成，每个页大小为16kb，即每个区的大小为1024kb即1MB</li>
+<li>段：表空间由各个段组成，常见的段有数据段，索引段，回滚段（undo log段）等。</li>
+</ul>
+<h2 id="3-redo-log"><a href="#3-redo-log" class="headerlink" title="3. redo log"></a>3. redo log</h2><p>缓存技术是一种常用的性能优化技术，在 Mysql 中，使用 Buffer Pool 来缓存表数据，它是以数据页为单位。引入缓存，也会引入同步数据到磁盘的问题，如果每一个事务都同步数据，由于一个事务可能涉及到数据面，同步数据的操作是一个随机 IO 的操作，性能损耗很大。为了解决问题，使用了WAL（ Write-Ahead Logging）技术，引入 redo log。它的基本思想是：将数据页修改写入 redo log，日志文件是顺序写入，性能很高，同时Buffer Pool 数据异步写入磁盘。通过 redo log，即使 Mysql 宕机，也可以通过 redo log 进行恢复。</p>
+<p>redo log由两部分组成：</p>
+<ol>
+<li>redo log缓冲区 Log Buffer；</li>
+<li>redo log日志文件，在 InnoDB 中，redo log 是固定大小的，比如可以配置为一组 4 个文件，每个文件的大小是 1GB，从头开始写，写到末尾又回到开头循环写，如下图所示：<br><img src="/images/mysql-log/undo-circle.png" alt="undo-circle" title="undo-circle"></li>
+</ol>
+<p>write pos 是当前记录的位置，一边写一边后移动，写到第 3 号文件末尾后就回到 0 号文件开头。checkpoint 是当前要删除的位置，也是往后推移并且循环的，删除记录前要把记录更新到数据文件。<br>write pos 和 checkpoint 之间的部分可以用来记录新的操作。如果 write pos 追上 checkpoint，表示文件满了，这时候不能再执行新的更新，需要先删除一些记录，把 checkpoint 推进一下。<br>有了 redo log，InnoDB 就可以保证即使数据库发生异常重启，之前提交的记录都不会丢失，这个能力称为 crash-safe。<br>另外，为了实现数据完整性，在 Buffer Pool 刷新到磁盘之前，必须先把 redo log 写入到磁盘。除了数据页，聚集索引、辅助索引以及 undo log 都需要记录到 redo log中。</p>
+<p><strong>redo log的记录内容</strong><br>undo log和 redo log 本身是分开的。Innodb 的 undo log 是记录在数据文件（系统表空间）中的，而且 innodb 将 undo log 的内容看做是数据，因此对undo log本身的操作（如向undo log插入一条undo log记录等），都会记录到redo log。undo log 可以通过redo log 将其恢复。因此当数据表插入一条记录时，涉及到的操作如下所示：</p>
+<ul>
+<li>向 undo log 插入一条 undo log 记录；</li>
+<li>向 redo log 中插入一条 “插入 undo log 记录”的redo log记录；</li>
+<li>Buffer Pool 中插入数据 （异步同步到磁盘）；</li>
+<li>向 redo log 插入一条 “insert” 的 redo log记录。</li>
+</ul>
+<p><strong>redo log 参数</strong></p>
+<ul>
+<li><p>innodb_log_files_in_group<br>redo log 文件的个数，命名方式如：ib_logfile0，iblogfile1… iblogfilen。默认2个，最大100个。</p>
+</li>
+<li><p>innodb_log_file_size<br>文件设置大小，默认值为 48M，最大值为512G，注意最大值指的是整个 redo log系列文件之和，即（innodb_log_files_in_group * innodb_log_file_size ）不能大于最大值512G。</p>
+</li>
+<li><p>innodb_log_group_home_dir<br>文件存放路径</p>
+</li>
+<li><p>innodb_log_buffer_size<br>redo Log 缓存区，默认8M，可设置1-8M。延迟事务日志写入磁盘，把redo log 放到该缓冲区，然后根据 innodb_flush_log_at_trx_commit参数的设置，再把日志从buffer 中flush 到磁盘中。</p>
+</li>
+<li><p>innodb_flush_log_at_trx_commit</p>
+<ul>
+<li>innodb_flush_log_at_trx_commit=1，每次commit都会把redo log从redo log buffer写入到system，并fsync刷新到磁盘文件中。</li>
+<li>innodb_flush_log_at_trx_commit=2，每次事务提交时MySQL会把日志从redo log buffer写入到system，但只写入到file system buffer，由系统内部来fsync到磁盘文件。如果数据库实例crash，不会丢失redo log，但是如果服务器crash，由于file system buffer还来不及fsync到磁盘文件，所以会丢失这一部分的数据。</li>
+<li>innodb_flush_log_at_trx_commit=0，事务发生过程，日志一直激励在redo log buffer中，跟其他设置一样，但是在事务提交时，不产生redo 写操作，而是MySQL内部每秒操作一次，从redo log buffer，把数据写入到系统中去。如果发生crash，即丢失1s内的事务修改操作。</li>
+</ul>
+</li>
+</ul>
+<h2 id="4-undo-log"><a href="#4-undo-log" class="headerlink" title="4. undo log"></a>4. undo log</h2><p>Innodb 为了支持回滚和 MVCC，需要备份旧数据，undo log 就负责存储这些数据，在操作任何数据之前，首先将数据备份到undo log，然后进行数据的修改。如果出现了错误或者用户手动执行了 rollback，系统可以利用 undo log 中的备份将数据恢复到事务开始之前的状态。与 redo log不同的是，磁盘上不存在单独的 undo log 文件，它存放在数据库内部的特殊段（segment）中，这称之为 undo 段（undo segment），undo 段位于共享表空间内。<br><img src="/images/mysql-log/undo-tablespace.png" alt="undo-tablespace" title="undo-tablespace"></p>
+<p>其中32个rollback segment创建在临时表空间中，96个创建在系统表空间中，每一个rollback segment可以分配 1024个 slot，也就是可以支持96*1024个并发的事务。</p>
+<h3 id="4-1-undo-log-类型"><a href="#4-1-undo-log-类型" class="headerlink" title="4.1 undo log 类型"></a>4.1 undo log 类型</h3><p>undo log有两种类型，分别是 insert undo log 和 update undo log。前者记录的是insert 语句对应的undo log，后者对应的是 update、delete 语句对应的undo log。</p>
+<ol>
+<li><p>insert undo log<br>nsert undo log 只对事务本身可见，所以insert undo log在事务提交后可直接删除，无需通过 purge 线程执行清理操作。insert undo log 包含的字段如下：<br><img src="/images/mysql-log/insert-undo-log.jpg" alt="insert-undo-log" title="insert-undo-log"></p>
+</li>
+<li><p>update undo log<br>执行 update 或者 delete 会产生 undo log，会影响已存在的记录，为了实现MVCC，会将同一个记录的多个版本的 undo log 串联起来，根据隔离级别的不同，会看到不同版本的数据，update undo log 不能在事务提交时立刻删除，需要等待 purge 线程进行最后的删除操作。如果是长事务，会产生大量的 undo log。undo log 包含的字段如下：<br><img src="/images/mysql-log/update-undo-log.jpg" alt="update-undo-log" title="update-undo-log"></p>
+</li>
+</ol>
+<h3 id="4-2-事务回滚"><a href="#4-2-事务回滚" class="headerlink" title="4.2 事务回滚"></a>4.2 事务回滚</h3><p>事务根据 sql的类型，进行相应的处理：</p>
+<ul>
+<li>insert sql : 在 undo log 中记录下 insert 进来的数据的 ID，当 rollback 时，根据 ID 完成精准的删除；</li>
+<li>delete sql ：在 undo log 中记录删除的数据，当回滚时会将删除前的数据 insert 进去；</li>
+<li>update sql ：在 undo log 中记录下修改前的数据，回滚时只需要反向update即可；</li>
+<li>select sql ：select不需要回滚。</li>
+</ul>
+<p>对于 insert 类型的 undo log，由于只对当前事务可见（没有事务会对还未插入的数据感兴趣），在事务提交之后该 undo log就会被删除。但对于 update 类型的 undo log 来说，该操作会影响当前的记录，由于同时可能会有多个事务对当前记录进行 update 操作，Innodb 使用 DATA_ROLL_ID 指针将多个版本的 undo log 串联起来，而链条的起点则是行记录中的隐藏字段 DB_ROLL_PTR 。</p>
+<p>Innodb 为每个记录中记录了三个隐藏字段：</p>
+<ul>
+<li>6字节的事务ID（DB_TRX_ID）；</li>
+<li>7字节的回滚指针（DB_ROLL_PTR）；</li>
+<li>隐藏的主键id，如果没有主键，Mysql 自动生成一个主键。</li>
+</ul>
+<p>以 test 表为例，我们分别进行 insert及upadte 操作来演示 undo log 日志。<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`test`</span>(</span><br><span class="line">   <span class="string">`id`</span> <span class="built_in">INT</span> <span class="keyword">UNSIGNED</span> AUTO_INCREMENT,</span><br><span class="line">   <span class="string">`a`</span> <span class="built_in">VARCHAR</span>(<span class="number">16</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">   <span class="string">`b`</span> <span class="built_in">VARCHAR</span>(<span class="number">16</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">   PRIMARY <span class="keyword">KEY</span> ( <span class="string">`id`</span> )</span><br><span class="line">)<span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行的操作</span></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> <span class="keyword">test</span>(<span class="keyword">id</span>, a, b) <span class="keyword">values</span>(<span class="number">1</span>, <span class="string">'redo'</span>,<span class="string">'undo'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span> <span class="keyword">test</span> <span class="keyword">set</span> a=<span class="string">"redo log"</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> <span class="keyword">test</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">1</span>;</span><br></pre></td></tr></table></figure></p>
+<p>其 undo log 链如下所示：<br><img src="/images/mysql-log/undo-log-list.jpg" alt="undo-log-list" title="undo-log-list"><br>如上图，删除的数据行不会立刻删除，而是在行记录头信息记录了一个 deleted_flag 标志位。最终会在 purge 线程 purge undo log 的时候进行实际的删除操作，这个时候undo log也会清理掉。</p>
+<h2 id="5-binlog-log"><a href="#5-binlog-log" class="headerlink" title="5. binlog log"></a>5. binlog log</h2><p>binlog 用于记录数据库执行的更新操作(不包括查询)信息，以二进制的形式保存在磁盘中。 binlog 是 Mysql 的逻辑日志，并且由 Server 层进行记录，使用任何存储引擎的 mysql 数据库都会记录 binlog log。</p>
+<p><strong>binlog log 格式</strong><br>binlog log 有三种格式，分别为 STATMENT 、 ROW 和 MIXED 。</p>
+<ul>
+<li>STATMENT ： 基于 SQL 语句的复制( statement-based replication, SBR )，每一条会修改数据的 sql 语句会记录到 binlog 中；</li>
+<li>ROW ： 基于行的复制( row-based replication, RBR )，不记录每条 sql 语句的上下文信息，仅需记录哪条数据被修改了；</li>
+<li>MIXED ： 基于 STATMENT 和 ROW 两种模式的混合复制( mixed-based replication, MBR )，一般的复制使用 STATEMENT 模式保存 binlog ，对于 STATEMENT 模式无法复制的操作使用 ROW 模式保存 binlog。</li>
+</ul>
+<p><strong>binlog log 写盘</strong><br>在写 binlog，通过参数 sync_binlog 来控制何时将 binlog fsync到磁盘。</p>
+<ul>
+<li>0：事务提交是没有立即 fsync 文件到磁盘，而是依赖于操作系统的 fsync 机制；</li>
+<li>1：每次 commit 的时候都要将 binlog fsync 磁盘；</li>
+<li>N：指定提交次数后，统一fsync到磁盘。</li>
+</ul>
+<p>要保证数据的可持久性，sync_binlog 必须设置为 1。</p>
+<p><strong>使用场景</strong></p>
+<ol>
+<li>主从同步；</li>
+<li>数据恢复。</li>
+</ol>
+<h2 id="6-内部-XA-协议"><a href="#6-内部-XA-协议" class="headerlink" title="6. 内部 XA 协议"></a>6. 内部 XA 协议</h2><p>从上面的内容可知，一个更新操作需要 Server 及 Innodb 协同完成，一个事务，Server 会写 binlog log， Innodb 会写 redo/undo log，这两部分是怎么保证数据的一致性及数据不丢失？在 Myslq 内部，使用了“两阶段提交”来实现这两个特性， 在此处的“两阶段提交”称为内部的 XA 协议，有别于多数据源的分布式事务。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> <span class="keyword">test</span> <span class="keyword">set</span> a=<span class="string">'redo'</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<p>以上面的 update 操作为例，更新的流程如下：<br><img src="/images/mysql-log/two-phase-commit.jpg" alt="two-phase-commit" title="two-phase-commit"></p>
+<p><strong>两阶段提交过程</strong><br>MySQL 采用了如下的过程实现内部 XA 的两阶段提交：</p>
+<ol>
+<li>Prepare 阶段：Innodb 将回滚段设置为 prepare 状态；将 redo log 写文件并刷盘；</li>
+<li>Commit 阶段：binlog 写入文件；binlog 刷盘；Innodb commit；</li>
+</ol>
+<p>两阶段提交保证了事务在多个引擎和 binlog 之间的原子性，以 binlog 写入成功作为事务提交的标志，而 InnoDB 的 commit 标志并不是事务成功与否的标志。</p>
+<p>在崩溃恢复中，是以 binlog 中的 xid 和 redo log 中的 xid 进行比较，xid 在 binlog 里存在则提交，不存在则回滚。我们来看崩溃恢复时具体的情况：</p>
+<ul>
+<li>在 prepare 阶段崩溃，即已经写入 redolog，在写入 binlog 之前崩溃，则会回滚；</li>
+<li>在 commit 阶段，当没有成功写入 binlog 时崩溃，也会回滚；</li>
+<li>如果已经写入 binlog，在写入 InnoDB commit 标志时崩溃，则重新写入 commit 标志，完成提交。</li>
+</ul>
+<h2 id="7-总结"><a href="#7-总结" class="headerlink" title="7. 总结"></a>7. 总结</h2><p>这篇文章分析了 Mysql 的三种日志文件，通过日志文件，Mysql 实现的事务的原子性及持久性，其中 undo log 实现了原子性，同时也用来实现 MVCC，redo log 实现了持久性，保证在服务宕机的情况下进行事务的恢复。另外，使用两阶段提交，结合 binlog 及 redo log，保证了 Mysql Sever 及 Innodb 数据的一致性。</p>
+<p><strong>参考：</strong></p>
+<hr>
+<p><a href="https://segmentfault.com/a/1190000009122071" target="_blank" rel="noopener">1. Innodb中的buffer poll和redo undo log</a><br><a href="https://mp.weixin.qq.com/s/b7Qnzh1EIM4wbExwmIkJyA" target="_blank" rel="noopener">2. 一个线上SQL死锁异常分析：深入了解事务和锁</a><br><a href="https://www.cnblogs.com/xinysu/p/6555082.html" target="_blank" rel="noopener">3. 说说MySQL中的Redo log Undo log都在干啥</a><br><a href="http://mysql.taobao.org/monthly/2016/07/01/" target="_blank" rel="noopener">4. MySQL · 特性分析 ·MySQL 5.7新特性系列三</a><br><a href="https://segmentfault.com/a/1190000023827696" target="_blank" rel="noopener">5. 必须了解的mysql三大日志-binlog、redo log和undo log</a><br><a href="https://mp.weixin.qq.com/s/zDiuK1wTIdwK4U3W3mrIlg" target="_blank" rel="noopener">6. 简介undo log、truncate、​以及undo log如何帮你回滚事物？</a><br><a href="https://xie.infoq.cn/article/ed531f74ecfd44eacb1a98258" target="_blank" rel="noopener">7. 洞悉 MySQL 底层架构：游走在缓冲与磁盘之间</a><br><a href="http://mysql.taobao.org/monthly/2018/12/04/" target="_blank" rel="noopener">8. MySQL的事务处理—两阶段事务提交2PC</a><br><a href="http://mysql.taobao.org/monthly/2020/05/07/" target="_blank" rel="noopener">9. MySQL · 源码分析 · 内部 XA 和组提交</a><br><a href="https://time.geekbang.org/column/article/68633" target="_blank" rel="noopener">10. 日志系统：一条SQL更新语句是如何执行的？</a></p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/11/29/gossip-protocol/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -2706,260 +2996,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/24/database-transaction/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="noahsark">
-      <meta itemprop="description" content="不畏将来，不念过往">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="船长的博客">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2020/05/24/database-transaction/" class="post-title-link" itemprop="http://yoursite.com/index.html">数据库事务</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2020-05-24 12:55:17" itemprop="dateCreated datePublished" datetime="2020-05-24T12:55:17+08:00">2020-05-24</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2020-06-14 19:58:53" itemprop="dateModified" datetime="2020-06-14T19:58:53+08:00">2020-06-14</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/数据库/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2020/05/24/database-transaction/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2020/05/24/database-transaction/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>在数据库技术中，事务将应用程序的多个读、写操作捆绑在一起成为一个逻辑操作单元。即事务中的所有读写是一个执行的整体，整个事务要么成功（提交）、要么失败（中止或回滚）。如果失败，应用程序可以安全地重试。这样，由于不需要担心部分失败的情况（无论出于何种原因），应用层的错误处理就变得简单得多。</p>
-<h2 id="1-ACID的含义"><a href="#1-ACID的含义" class="headerlink" title="1. ACID的含义"></a>1. ACID的含义</h2><p>事务提供了四个方面的安全保证，即ACID，分别代表原子性（Atomicity），一致性（Consistency），隔离性（Isolation）与持久性（Durability）。</p>
-<h3 id="1-1-原子性"><a href="#1-1-原子性" class="headerlink" title="1.1 原子性"></a>1.1 原子性</h3><p>ACID原子性描述了客户端发起一个包含多个写操作的请求时可能发生的情况，例如在完成了一部分写入后，系统发生了故障，包括进程崩溃，网络中断，磁盘变满或者违反了某种完整性约束等；把多个写操作纳入到一个原子事务，万一出现了上述故障而导致没法完成最终提交时，则事务会中止，并且数据库丢弃或撤销那些局部完成的操作。<br>ACID原子性所定义的特征是：在出错时中止事务，并将部分完成的写入全部丢弃。它强调一个可中止性的概念。</p>
-<h3 id="1-2-一致性"><a href="#1-2-一致性" class="headerlink" title="1.2 一致性"></a>1.2 一致性</h3><p>ACID中的一致性主要是指对数据有特定的预期状态，任何数据更改必须满足这些状态约束（或者恒等条件）。例如，对于一个账单系统，账户的贷款余额应和借款余额保持平衡。如果某事务从一个有效的状态开始，并且事务中任何更新操作都没有违背约束，那么最后的结果依然符合有效状态。<br>这种一致性本质上要求应用层来维护状态一致（或者恒等），应用程序有责任正确地定义事务来保持一致性。这不是数据库可以保证的事情：即如果提供的数据违背了恒等条件，数据库很难检测进而阻止该操作（数据库可以完成针对某些特定类型的恒等约束检查，例如使用外键约束或唯一性约束。但通常主要靠应用程序定义数据的有效/无效状态，数据库主要用于存储）。<br>原子性，隔离性和持久性是数据库自身的属性，而ACID中的一致性更多是应用层的属性。应用程序可能借助数据库提供的原子性和隔离性，以达到一致性，但一致性本身并不源于数据库。因此，也有一种说法，字母C其实并不应该属于ACID。</p>
-<h3 id="1-3-隔离性"><a href="#1-3-隔离性" class="headerlink" title="1.3 隔离性"></a>1.3 隔离性</h3><p>ACID语义中的隔离性意味着并发执行的多个事务相互隔离，它们不能互相交叉，主要是指多个事务中对相同记录读写操作进行隔离。</p>
-<h3 id="1-4-持久性"><a href="#1-4-持久性" class="headerlink" title="1.4 持久性"></a>1.4 持久性</h3><p>数据库系统本质上是提供一个安全可靠的地方来存储数据而不用担心数据丢失等。持久性它保证一旦事务提交成功，即使存在硬件故障或数据库崩溃，事务所写入的任何数据也不会消失。</p>
-<p>在ACID中，原子性，隔离性和持久性是数据库自身的属性，其中原子性和持久性，我们能修改的地方不多，所以后面的内容主要关注隔离性相关的内容。</p>
-<h2 id="2-隔离性"><a href="#2-隔离性" class="headerlink" title="2. 隔离性"></a>2. 隔离性</h2><p>隔离性主要是解决多个事务对相同数据或关联数据同时进行读写引发的问题，这些问题包括脏读、脏写、不可重复读及幻读。</p>
-<h3 id="2-1-脏读"><a href="#2-1-脏读" class="headerlink" title="2.1 脏读"></a>2.1 脏读</h3><p><strong>定义：一个事务读取了另外一个事务未提交的数据，主要是并发读的问题。</strong></p>
-<p>假定某个事务已经完成部分数据写入，但事务尚未提交（或中止），此时另一个事务可以看到尚未提交的数据，如图所示：<br><img src="/images/dirty-read.jpg" alt="dirty-read" title="dirty-read"><br>事务1设置了x=3，在事务1未提交之前，事务2的get x操作返回了3。没有脏读时，事务2只有在事务1的事务提交之后才能看到x的新值。</p>
-<p>当有以下需求时，需要防止脏读：</p>
-<ul>
-<li>如果事务需要更新多个对象，脏读意味着另一个事务可能会看到部分更新，而非全部。</li>
-<li>如果事务发生中止，则所有写入操作都需要回滚。如果发生了脏读，这意味着它可能会看到一些稍后被回滚的数据，而这些数据并未实际提交到数据库中。之后所引发的后果可能会变得难以预测。</li>
-</ul>
-<h3 id="2-2-脏写"><a href="#2-2-脏写" class="headerlink" title="2.2 脏写"></a>2.2 脏写</h3><p><strong>定义：一个事务覆盖了另外一个事务未提交的数据更新，主要是对同一份数据进行并发更新的问题。</strong></p>
-<p>如果两个事务同时尝试更新相同的对象，会发生什么情况?我们不清楚写入的顺序，但可以想象后写的操作会覆盖较早的写入。如果先前的写入是尚未提交事务的一部分，是否还会被覆盖？如果是，那就是脏写。<br>如果事务需要更新多个对象，脏写会带来非预期的错误结果，例如Alice和Bob两个人试图购买同一辆车，而购买洗车需要两次数据的写入：商品买主需要更新，同时发票也要更新。如下图所示，车主被改为Bob（他成功更新了商品数据），而Alice成功更新了发票信息，导致了业务数据的不一致。<br><img src="/images/dirty-write.jpg" alt="dirty-write" title="dirty-write"></p>
-<h3 id="2-3-隔离级别-读提交"><a href="#2-3-隔离级别-读提交" class="headerlink" title="2.3 隔离级别-读提交"></a>2.3 隔离级别-读提交</h3><p>读-提交是数据库中比较流行的事务隔离级别，它提供以下两个保证：</p>
-<ul>
-<li>读数据库时，只能看到已成功提交的数据，防止脏读；</li>
-<li>写数据库时，只会覆盖已成功提交的数据，防止脏写。</li>
-</ul>
-<p>数据库通常使用行级锁来防止脏写：当事务想修改某个对象（例如行或文档）时，它必须首先获得该对象的锁；然后一直持有锁直到事务提交（或中止）。给定时刻，只有一个事务可以拿到特定对象的锁，如果有另一个事务尝试更新同一个对象，则必须等待，直到前面的事务完成了提交（或中止）后，才能获得锁并继续。<br>数据库了为防止脏读，一般使用读锁，或者对于每一个待更新的对象，数据库都会维护数据的两个版本：1）旧值的版本；2）当前事务最新的版本。在事务提交之前，所有其它读操作都读取旧值；仅当写事务提交之后，才会切换到读取最新的值。</p>
-<h3 id="2-4-不可重复读"><a href="#2-4-不可重复读" class="headerlink" title="2.4 不可重复读"></a>2.4 不可重复读</h3><p><strong>定义：在同一个事务中，同一个查询操作重复多次执行，返回结果不一样，主要是并发读的问题。</strong></p>
-<p>不可重复读出现在一个事务中，在同一个查询操作执行多次操作的期间，另外一个事务对相同数据对象进行更新操作并成功提交事务，导致提交前后的数据不同。如下图所示，在读提交隔离级别下不能解决不可重复读的问题。<br><img src="/images/non-repeatable-read.jpg" alt="non-repeatable-read" title="non-repeatable-read"></p>
-<p>假设Alice在银行有1000美元的存款，分为两个账户，每个500美元。现在有这样一笔转账交易从账户1转账户2。如果在她提交转账请求之后而数据库系统执行转账的过程中间，来查看两个账户的余额，她有可能会看到账户1在收到转账之前的余额（500美元），和账户2在完成转账之后的敌众余额（400美元）。对于Alice来说，貌似她的账户总共有900美元，而不是1000美元。</p>
-<p>在上面的场景中，主要是一个事务跨越了另外一个事务，读取到了另外一个事务前后更新的数据，导致了数据的不一致性。为了解决这个问题，数据库引入了多版本并发控制（Multivesion Concurrency Control,MVCC），这种技术保留了数据对象多个不同的提交版本。</p>
-<p>提供MVCC技术的隔离级别称为快照隔离级别，在MYSQL中也叫可重复读隔离级别，我们在这里统一叫快照隔离级别。在快照隔离级别中，脏写也是通过行锁来实现的，而脏读的实现也比较简单，直接基于MVCC来实现。</p>
-<p>以PostgreSQL（或Mysql）中的MVCC实现为例。当事务开始时，首先赋予一个唯一的、单调递增的事务ID(txid)。每当事务向数据库写入新内部时，所写的数据都会被标记写入者的事务ID，如下图所示：<br><img src="/images/mvcc.jpg" alt="mvcc" title="mvcc"><br>表中的每一行都有一个created_by字段，其中包含了创建该行的事务ID。每一行还有一个deleted_ty字段，初始为空。如果事务要删除某行，该行实际上并未从数据库中删除，而只是将deleted_ty字段设置为请求删除的事务ID（仅仅标记为删除）。事后，当确定没有其它事务引用该标记删除的行时，数据库的垃圾回收进程才去真正删除并释放存储空间。</p>
-<p>一次更新操作在内部会转换为一个删除操作加一个创建操作。例如，事务13从账户2中扣除100元，余额从500美元减为400美元，在account表里会出现现两行：一个余额为500但标记为删除的行（由事务13删除），另一个余额为400，由事务13创建。</p>
-<p>当事务读数据库时，通过事务ID可以决定哪些对象可见，哪些不可见。通常情况下，仅当以下两个条件都成立，则该数据对象对事务可见：</p>
-<ul>
-<li>事务开始的时刻，创建该对象的事务已经完成了提交；</li>
-<li>对象没有被标记为删除；或者即使标记了，但删除事务在当前事务开始时还没有完成提交。</li>
-</ul>
-<p>如事务12只能看到12之前提交的数据，事务13的更改对于事务12来说是不可见的。</p>
-<h3 id="2-5-当前读"><a href="#2-5-当前读" class="headerlink" title="2.5 当前读"></a>2.5 当前读</h3><p>在快照隔离级别下，以下的场景会产生问题：</p>
-<ol>
-<li>首先输入一些匹配条件，即采用SELECT查询所有满足条件的行（例如，至少有两名医生正在值班，同一时刻房间没有预订）。</li>
-<li>根据查询的结果，应用层代码来决定下一步的操作（有可能继续，或者报告错误并中止）。</li>
-<li>如果应用程序决定继续执行，它将发起数据库写入（INSERT,UPDATE或DELETE）并提交事务。</li>
-</ol>
-<p>假定在一个医生管理系统中，医院会安排多个医生值班，医生也可以申请调整班次，但前提是确保至少一个医生还在该班次中值班。现在的情况是，Alice和Bob是两位值班医生，两个人碰巧都感到身体不适，因而都决定请假。如果他们几乎同一个时刻执行了调班的操作，如下图所示：<br><img src="/images/write-tilt.jpg" alt="write-tilt" title="write-tilt"></p>
-<p>在数据库使用快照级别隔离，两个检查都返回有两名医生，所以两个事务都安全地进入下一下阶段。接下来，两个事务执行更新操作，调班成功。两个事务都成功提交，最后的结果却是没有任何医生在值班，显然违背了至少一个医生值班的业务需求。</p>
-<p>为了解决这个问题，一种可选的方案是对查询的数据行显示加锁，加上for update，如下所示：<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> doctors  <span class="keyword">where</span> on_call=<span class="literal">true</span> <span class="keyword">and</span> shift_id=<span class="number">1234</span> <span class="keyword">for</span> <span class="keyword">update</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">update</span> doctors  <span class="keyword">set</span> on_call=<span class="literal">false</span>  <span class="keyword">where</span> <span class="keyword">name</span>=<span class="string">'Alice'</span>  <span class="keyword">and</span> shift_id=<span class="number">1234</span>;</span><br></pre></td></tr></table></figure></p>
-<p>在上面的查询语句中，加入了for update，表示对数据行进行加锁，采用的是“当前读”的模式（Mysql数据库），即当前读会读取当前最新提交的数据，即使当前事务落后于最新事务，也能看到最新事务提交后的数据。</p>
-<h3 id="2-6-幻读"><a href="#2-6-幻读" class="headerlink" title="2.6 幻读"></a>2.6 幻读</h3><p><strong>定义：在一个事务中的写入（插入）操作改变了另外一个事务查询的结果。</strong></p>
-<p>在Mysql中，在快照读（可重复读）隔离级别下，普通的查询是快照读，是不会看到别的事务插入的数据的。幻读只会在“当前读”下才会出现，同时幻读专指“新插入的行”。</p>
-<p>假定有如下的表及初始数据：<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`t`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`c`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`d`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`c`</span> (<span class="string">`c`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t <span class="keyword">values</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>),(<span class="number">5</span>,<span class="number">5</span>,<span class="number">5</span>),(<span class="number">10</span>,<span class="number">10</span>,<span class="number">10</span>),(<span class="number">15</span>,<span class="number">15</span>,<span class="number">15</span>),(<span class="number">20</span>,<span class="number">20</span>,<span class="number">20</span>),(<span class="number">25</span>,<span class="number">25</span>,<span class="number">25</span>);</span><br></pre></td></tr></table></figure></p>
-<p>现在对该表执行三个事务，如下图所示：<br><img src="/images/multi-transaction.jpg" alt="multi-transaction" title="multi-transaction"></p>
-<p>可以看到，事务A里执行了三次查询，分别是 Q1、Q2 和 Q3。它们的 SQL 语句相同，都是 select * from t where d=5 for update。这个语句查询所有d=5的行，使用当前读，并且加上锁，现在来看它们的返回结果：</p>
-<ol>
-<li>Q1只返回id=5这一行数据；</li>
-<li>在T2时刻，事务B修改了id=0这行数据，所以Q2返回id=0和id=5这两行数据；</li>
-<li>在T4时刻，事务C插入了新的一行数据，所以Q3返回id=0,id=1及id=5这三行数据。</li>
-</ol>
-<p>其中，Q3 读到 id=1 这一行的现象，被称为“幻读”。也就是说，幻读指的是一个事务在前后两次查询同一个范围的时候，后一次查询看到了前一次查询没有看到的行。</p>
-<h4 id="2-6-1-幻读引发的问题"><a href="#2-6-1-幻读引发的问题" class="headerlink" title="2.6.1 幻读引发的问题"></a>2.6.1 幻读引发的问题</h4><p>幻读会引入两个问题，一是语义上的问题，事务A已经对d=5的行加了锁，其它事务仍然还可以对d=5的行进行操作，如将其它行的d字段改为5或新插入d=5的行；另外一个问题，会导致数据库数据和日志的不一致，如下图所示：<br><img src="/images/phantom-read-problem.jpg" alt="phantom-read-problemn" title="phantom-read-problem"><br>在数据库中id=5的行，d字段修改为100；id=1的行，d=5,c=5。我们再来看binlog的日志：</p>
-<ol>
-<li><p>T2时刻，事务C提交之后，写入两行：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t <span class="keyword">values</span>(<span class="number">1</span>,<span class="number">1</span>,<span class="number">5</span>);</span><br><span class="line"><span class="keyword">update</span> t <span class="keyword">set</span> c=<span class="number">5</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>T4时刻，事务A提交之后，写入三行：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">5</span> <span class="keyword">for</span> <span class="keyword">update</span>;</span><br><span class="line"><span class="keyword">update</span> t <span class="keyword">set</span> d=<span class="number">100</span> <span class="keyword">where</span> d=<span class="number">5</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">5</span> <span class="keyword">for</span> <span class="keyword">update</span></span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>合在一起之后，日志内容如下：<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t <span class="keyword">values</span>(<span class="number">1</span>,<span class="number">1</span>,<span class="number">5</span>);</span><br><span class="line"><span class="keyword">update</span> t <span class="keyword">set</span> c=<span class="number">5</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">5</span> <span class="keyword">for</span> <span class="keyword">update</span>;</span><br><span class="line"><span class="keyword">update</span> t <span class="keyword">set</span> d=<span class="number">100</span> <span class="keyword">where</span> d=<span class="number">5</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">5</span> <span class="keyword">for</span> <span class="keyword">update</span></span><br></pre></td></tr></table></figure></p>
-<p>从执行的语句来看，事务A的update最后执行，导致所有d=5的行，d字段都修改为100，与数据库中的数据不一致。如果使用这个binlog日志进行恢复数据或进行主从备份，会导致数据的前后不一致。</p>
-<h4 id="2-6-2-解决的办法"><a href="#2-6-2-解决的办法" class="headerlink" title="2.6.2 解决的办法"></a>2.6.2 解决的办法</h4><p>事务B中的update操作可以通过行锁来解决，但对于事务C的插入操作，由于该行在插入之前根本不存在，不能使用行锁来解决，因此，为了解决幻读问题，InnoDB 引入新的锁，也就是间隙锁 (Gap Lock)。顾名思义，间隙锁，锁的就是两个值之间的空隙。比如文章开头的表 t，初始化插入了 6 个记录，这就产生了 7 个间隙。如下图所示：<br><img src="/images/gap-lock.jpg" alt="gap-lock" title="gap-lock"><br>这样，当执行 <code>select * from t where d=5 for update</code> 的时候，就不止是给数据库中已有的 6 个记录加上了行锁，还同时加了 7 个间隙锁。这样就确保了无法再插入新的记录。也就是说这时候，在一行行扫描的过程中，不仅将给行加上了行锁，还给行两边的空隙，也加上了间隙锁。<br>间隙锁和行锁合称 next-key lock，每个 next-key lock 是前开后闭区间。也就是说，我们的表 t 初始化以后，如果用 <code>select * from t for update</code> 要把整个表所有记录锁起来，就形成了 7 个 next-key lock，分别是 (-∞,0]、(0,5]、(5,10]、(10,15]、(15,20]、(20, 25]、(25, +supremum]，其中supremum是InnoDB为每个索引加的一个不存在的最大值。</p>
-<h2 id="3-总结"><a href="#3-总结" class="headerlink" title="3. 总结"></a>3. 总结</h2><p>除了上面提到的两种隔离级别：读-提交和可重复读（快照读），数据库还提供了另外两种隔离级别：读未提交和串行化，其中读未提交只解决了脏写，没有解决脏读，而串行化则要求事务串行化执行，由于性能的问题，大多数据库一般不会使用该隔离级别。</p>
-<p><strong>参考：</strong></p>
-<hr>
-<p><a href="https://book.douban.com/subject/30329536/" target="_blank" rel="noopener">1. 数据密集型应用系统设计</a><br><a href="https://time.geekbang.org/column/article/75173?utm_source=pinpaizhuanqu&amp;utm_medium=geektime&amp;utm_campaign=guanwang&amp;utm_term=guanwang&amp;utm_content=0511" target="_blank" rel="noopener">2. 幻读是什么，幻读有什么问题？</a></p>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-       
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -3007,7 +3043,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">28</span>
+                    <span class="site-state-item-count">29</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -3257,7 +3293,13 @@
                     
                       
                     
-                    <span class="site-state-item-count">98</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">101</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
